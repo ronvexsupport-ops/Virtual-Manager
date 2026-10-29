@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile and preferences",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 100 },
+        "businessName": { "type": "string", "maxLength": 120 },
+        "language": { "type": "string", "enum": ["bn", "en"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "email", "language", "createdAt", "updatedAt"]
+    },
+    "Contact": {
+      "title": "Contact",
+      "description": "Customer or supplier record belonging to a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 25 },
+        "address": { "type": "string", "maxLength": 250 },
+        "contactType": { "type": "string", "enum": ["customer", "supplier"] },
+        "notes": { "type": "string", "maxLength": 500 },
+        "currentBalanceInPoisha": { "type": "integer" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "name", "contactType", "currentBalanceInPoisha", "createdAt", "updatedAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Immutable ledger entry for a contact with audit void support",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "contactId": { "type": "string", "maxLength": 128 },
+        "contactName": { "type": "string", "maxLength": 100 },
+        "contactType": { "type": "string", "enum": ["customer", "supplier"] },
+        "type": { "type": "string", "enum": ["credit_given", "payment_received", "purchase_credit", "payment_given"] },
+        "amountInPoisha": { "type": "integer" },
+        "description": { "type": "string", "maxLength": 250 },
+        "date": { "type": "string", "maxLength": 30 },
+        "isVoided": { "type": "boolean" },
+        "voidReason": { "type": "string", "maxLength": 250 },
+        "voidedAt": { "type": "string", "maxLength": 40 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "contactId", "contactType", "type", "amountInPoisha", "date", "isVoided", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile settings including language and business name"
+    },
+    "/contacts/{contactId}": {
+      "schema": "Contact",
+      "description": "Customer and supplier records scoped to user"
+    },
+    "/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Financial ledger transactions scoped to user and contact"
+    }
+  }
+}

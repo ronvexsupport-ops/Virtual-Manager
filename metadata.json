@@ -1,0 +1,6 @@
+{
+  "name": "Virtual Manager",
+  "description": "Mobile-first online due ledger and debt accounting app (ডিজিটাল খাতা) for customers and suppliers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

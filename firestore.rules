@@ -1,0 +1,136 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Validation for UserProfile
+    function isValidUserProfile(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.email is string && data.email.size() <= 128
+        && (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 100))
+        && (!('businessName' in data) || (data.businessName is string && data.businessName.size() <= 120))
+        && data.language in ['bn', 'en']
+        && data.createdAt is string
+        && data.updatedAt is string;
+    }
+
+    // Validation for Contact
+    function isValidContact(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.userId is string && data.userId == request.auth.uid
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && (!('phone' in data) || (data.phone is string && data.phone.size() <= 25))
+        && (!('address' in data) || (data.address is string && data.address.size() <= 250))
+        && data.contactType in ['customer', 'supplier']
+        && (!('notes' in data) || (data.notes is string && data.notes.size() <= 500))
+        && data.currentBalanceInPoisha is int
+        && data.createdAt is string
+        && data.updatedAt is string;
+    }
+
+    // Validation for Transaction
+    function isValidTransaction(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.userId is string && data.userId == request.auth.uid
+        && data.contactId is string && data.contactId.size() <= 128
+        && (!('contactName' in data) || (data.contactName is string && data.contactName.size() <= 100))
+        && data.contactType in ['customer', 'supplier']
+        && data.type in ['credit_given', 'payment_received', 'purchase_credit', 'payment_given']
+        && data.amountInPoisha is int && data.amountInPoisha > 0
+        && (!('description' in data) || (data.description is string && data.description.size() <= 250))
+        && data.date is string && data.date.size() <= 30
+        && data.isVoided is bool
+        && (!('voidReason' in data) || (data.voidReason is string && data.voidReason.size() <= 250))
+        && (!('voidedAt' in data) || (data.voidedAt is string && data.voidedAt.size() <= 40))
+        && data.createdAt is string
+        && data.updatedAt is string;
+    }
+
+    // 1. User Profiles: /users/{userId}
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Users cannot list other users
+      allow create: if isOwner(userId) && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && incoming().id == userId;
+      allow update: if isOwner(userId) && isValidId(userId)
+        && isValidUserProfile(incoming())
+        && incoming().id == existing().id
+        && incoming().email == existing().email
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'businessName', 'language', 'updatedAt']);
+      allow delete: if false;
+    }
+
+    // 2. Contacts: /contacts/{contactId}
+    match /contacts/{contactId} {
+      allow get: if isSignedIn() && isValidId(contactId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(contactId)
+        && isValidContact(incoming())
+        && incoming().userId == request.auth.uid
+        && incoming().id == contactId;
+      allow update: if isSignedIn() && isValidId(contactId)
+        && existing().userId == request.auth.uid
+        && isValidContact(incoming())
+        && incoming().userId == existing().userId
+        && incoming().id == existing().id
+        && incoming().contactType == existing().contactType
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'phone', 'address', 'notes', 'currentBalanceInPoisha', 'updatedAt']);
+      allow delete: if isSignedIn() && isValidId(contactId) && existing().userId == request.auth.uid;
+    }
+
+    // 3. Transactions: /transactions/{transactionId}
+    match /transactions/{transactionId} {
+      allow get: if isSignedIn() && isValidId(transactionId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(transactionId)
+        && isValidTransaction(incoming())
+        && incoming().userId == request.auth.uid
+        && incoming().id == transactionId
+        && incoming().isVoided == false;
+      // Controlled audit voiding: Financial records cannot be altered or deleted, only voided
+      allow update: if isSignedIn() && isValidId(transactionId)
+        && existing().userId == request.auth.uid
+        && isValidTransaction(incoming())
+        && incoming().userId == existing().userId
+        && incoming().id == existing().id
+        && incoming().contactId == existing().contactId
+        && incoming().contactType == existing().contactType
+        && incoming().type == existing().type
+        && incoming().amountInPoisha == existing().amountInPoisha
+        && incoming().date == existing().date
+        && incoming().createdAt == existing().createdAt
+        && existing().isVoided == false // cannot re-void or modify after voided
+        && incoming().isVoided == true
+        && incoming().diff(existing()).affectedKeys().hasOnly(['isVoided', 'voidReason', 'voidedAt', 'updatedAt']);
+      // Never silently delete financial records (audit trail preservation)
+      allow delete: if false;
+    }
+  }
+}
