@@ -1,0 +1,78 @@
+{
+  "fresh.trader.1793351687735@gmail.com": {
+    "email": "fresh.trader.1793351687735@gmail.com",
+    "otpHash": "",
+    "salt": "cdf7e9a65a5ef98eeec99615e85e81f1",
+    "createdAt": 1793351687735,
+    "expiresAt": 1793351987735,
+    "attempts": 0,
+    "maxAttempts": 5,
+    "lastSentAt": 1793351687735,
+    "cooldownUntil": 1793351747735,
+    "verified": true,
+    "verifiedAt": 1793351687735
+  },
+  "testuser@gmail.com": {
+    "email": "testuser@gmail.com",
+    "otpHash": "b7fe836f4311fa226f1852cf710d22468327bfcc7d43f52fb36d12a04490fadc",
+    "salt": "0c3a2f9ba0678f68af9cc2d12633c91e",
+    "createdAt": 1793351717031,
+    "expiresAt": 1793352017031,
+    "attempts": 0,
+    "maxAttempts": 5,
+    "lastSentAt": 1793351717031,
+    "cooldownUntil": 1793351777031,
+    "verified": false
+  },
+  "audit.persist.1793352227000@gmail.com": {
+    "email": "audit.persist.1793352227000@gmail.com",
+    "otpHash": "8b6c224d33768a220334c21c9a1e62fa78b8f72ddd8f316cf01a6eacededd879",
+    "salt": "c9949b151f78ed0c794768c1ecfaa280",
+    "createdAt": 1793352227001,
+    "expiresAt": 1793352527001,
+    "attempts": 0,
+    "maxAttempts": 5,
+    "lastSentAt": 1793352227001,
+    "cooldownUntil": 1793352287001,
+    "verified": false
+  },
+  "audit.instance.1793352227002@gmail.com": {
+    "email": "audit.instance.1793352227002@gmail.com",
+    "otpHash": "",
+    "salt": "9d25586ba345617949901e1bd790661f",
+    "createdAt": 1793352227003,
+    "expiresAt": 1793352527003,
+    "attempts": 0,
+    "maxAttempts": 5,
+    "lastSentAt": 1793352227003,
+    "cooldownUntil": 1793352287003,
+    "verified": true,
+    "verifiedAt": 1793352227003
+  },
+  "audit.registration.1793352227004@gmail.com": {
+    "email": "audit.registration.1793352227004@gmail.com",
+    "otpHash": "",
+    "salt": "3608cd51e19dca56cab611d7df2018b5",
+    "createdAt": 1793352227004,
+    "expiresAt": 1793352527004,
+    "attempts": 0,
+    "maxAttempts": 5,
+    "lastSentAt": 1793352227004,
+    "cooldownUntil": 1793352287004,
+    "verified": true,
+    "verifiedAt": 1793352227005
+  },
+  "fresh.trader.1793352237309@gmail.com": {
+    "email": "fresh.trader.1793352237309@gmail.com",
+    "otpHash": "",
+    "salt": "84ef5846b859171bc703dafc23034fed",
+    "createdAt": 1793352237309,
+    "expiresAt": 1793352537309,
+    "attempts": 0,
+    "maxAttempts": 5,
+    "lastSentAt": 1793352237309,
+    "cooldownUntil": 1793352297309,
+    "verified": true,
+    "verifiedAt": 1793352237310
+  }
+}

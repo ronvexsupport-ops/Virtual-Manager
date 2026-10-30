@@ -105,6 +105,18 @@ service cloud.firestore {
       allow delete: if isSignedIn() && isValidId(contactId) && existing().userId == request.auth.uid;
     }
 
+    // Helper to verify that referenced contact exists and belongs to the authenticated user
+    function isContactOwnedByUser(contactId, uid) {
+      return isValidId(contactId)
+        && (
+          (exists(/databases/$(database)/documents/contacts/$(contactId))
+            && get(/databases/$(database)/documents/contacts/$(contactId)).data.userId == uid)
+          ||
+          (existsAfter(/databases/$(database)/documents/contacts/$(contactId))
+            && getAfter(/databases/$(database)/documents/contacts/$(contactId)).data.userId == uid)
+        );
+    }
+
     // 3. Transactions: /transactions/{transactionId}
     match /transactions/{transactionId} {
       allow get: if isSignedIn() && isValidId(transactionId) && existing().userId == request.auth.uid;
@@ -113,7 +125,8 @@ service cloud.firestore {
         && isValidTransaction(incoming())
         && incoming().userId == request.auth.uid
         && incoming().id == transactionId
-        && incoming().isVoided == false;
+        && incoming().isVoided == false
+        && isContactOwnedByUser(incoming().contactId, request.auth.uid);
       // Controlled audit voiding: Financial records cannot be altered or deleted, only voided
       allow update: if isSignedIn() && isValidId(transactionId)
         && existing().userId == request.auth.uid
@@ -131,6 +144,11 @@ service cloud.firestore {
         && incoming().diff(existing()).affectedKeys().hasOnly(['isVoided', 'voidReason', 'voidedAt', 'updatedAt']);
       // Never silently delete financial records (audit trail preservation)
       allow delete: if false;
+    }
+
+    // 4. Server-Side OTP Records (Client Access Completely Forbidden)
+    match /otp_verifications/{id} {
+      allow read, write: if false;
     }
   }
 }

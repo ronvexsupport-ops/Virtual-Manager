@@ -6,8 +6,6 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   sendPasswordResetEmail,
-  signInWithPopup,
-  GoogleAuthProvider,
   updateProfile as updateFirebaseProfile,
 } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
@@ -28,7 +26,6 @@ interface AuthContextType {
     businessName?: string
   ) => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
   logOut: () => Promise<void>;
   updateUserProfileData: (data: {
     displayName?: string;
@@ -155,38 +152,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const signInWithGoogle = async () => {
-    if (!isFirebaseConfigured || !auth) {
-      throw new Error('Firebase is not configured.');
-    }
-    setError(null);
-    try {
-      const provider = new GoogleAuthProvider();
-      const res = await signInWithPopup(auth, provider);
-      const userDocRef = doc(db, 'users', res.user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        const now = new Date().toISOString();
-        const initialProfile: UserProfile = {
-          id: res.user.uid,
-          email: res.user.email || '',
-          displayName: res.user.displayName || '',
-          businessName: '',
-          language: 'bn',
-          createdAt: now,
-          updatedAt: now,
-        };
-        await setDoc(userDocRef, initialProfile);
-        setUserProfile(initialProfile);
-      }
-    } catch (err: any) {
-      const msg = err?.message || 'Google sign in failed';
-      setError(msg);
-      throw err;
-    }
-  };
-
   const logOut = async () => {
     if (!auth) return;
     try {
@@ -228,7 +193,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         signInWithEmail,
         signUpWithEmail,
         resetPassword,
-        signInWithGoogle,
         logOut,
         updateUserProfileData,
       }}

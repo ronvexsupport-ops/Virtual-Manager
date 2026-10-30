@@ -12,11 +12,11 @@ export function takaToPoisha(takaInput: string | number): number {
   }
 
   const cleaned = takaInput.trim().replace(/,/g, '');
-  if (!cleaned) return 0;
+  if (!cleaned || cleaned.startsWith('-')) return 0;
 
   const parts = cleaned.split('.');
   const wholePart = parseInt(parts[0] || '0', 10);
-  if (isNaN(wholePart)) return 0;
+  if (isNaN(wholePart) || wholePart < 0) return 0;
 
   let decimalPart = 0;
   if (parts.length > 1) {

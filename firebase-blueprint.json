@@ -54,6 +54,23 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["id", "userId", "contactId", "contactType", "type", "amountInPoisha", "date", "isVoided", "createdAt", "updatedAt"]
+    },
+    "OtpVerification": {
+      "title": "OtpVerification",
+      "description": "Server-side hashed OTP verification record with rate limits",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 128 },
+        "otpHash": { "type": "string", "maxLength": 128 },
+        "salt": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string" },
+        "expiresAt": { "type": "string" },
+        "attempts": { "type": "integer" },
+        "maxAttempts": { "type": "integer" },
+        "cooldownUntil": { "type": "string" },
+        "verified": { "type": "boolean" }
+      },
+      "required": ["email", "otpHash", "salt", "createdAt", "expiresAt", "attempts", "maxAttempts", "cooldownUntil", "verified"]
     }
   },
   "firestore": {
@@ -68,6 +85,10 @@
     "/transactions/{transactionId}": {
       "schema": "Transaction",
       "description": "Financial ledger transactions scoped to user and contact"
+    },
+    "/otp_verifications/{id}": {
+      "schema": "OtpVerification",
+      "description": "Server-only hashed OTP verification records (client access denied)"
     }
   }
 }

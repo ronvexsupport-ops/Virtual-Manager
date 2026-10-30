@@ -24,3 +24,4 @@
 10. **Arbitrary Schema Injection**: Creating a contact with extra unwanted payload keys like `{ isHacked: true, role: 'admin' }` -> PERMISSION_DENIED.
 11. **Hard Delete Prevention**: Attempting to delete a ledger transaction -> PERMISSION_DENIED.
 12. **Oversized String Payload**: Contact name or note exceeding character limits (> 500 chars) -> PERMISSION_DENIED.
+13. **Foreign / Nonexistent Contact Reference**: User B creates a transaction with `contactId` pointing to User A's contact or a nonexistent ID -> PERMISSION_DENIED via `isContactOwnedByUser(incoming().contactId, request.auth.uid)`.

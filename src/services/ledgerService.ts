@@ -278,6 +278,10 @@ export async function recordLedgerTransaction(
       }
 
       const contactData = contactSnap.data() as Contact;
+      if (contactData.userId !== userId) {
+        throw new Error('Target contact does not belong to the authenticated user.');
+      }
+
       const balanceDelta = calculateBalanceDelta(
         payload.contactType,
         payload.type,
