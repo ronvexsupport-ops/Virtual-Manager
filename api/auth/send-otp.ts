@@ -1,6 +1,5 @@
-import type { IncomingMessage, ServerResponse } from 'http';
 import { requestOtp, rollbackOtp } from '../../src/services/otpService.ts';
-import { sendOtpEmail } from '../../src/services/emailService.ts';
+import { sendOtpViaAppsScript } from '../../src/services/appsScriptEmailService.ts';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
@@ -23,22 +22,23 @@ export default async function handler(req: any, res: any) {
     }
 
     try {
-      await sendOtpEmail(email, otpResult.otp);
+      await sendOtpViaAppsScript(email, otpResult.otp);
       return res.status(200).json({
         success: true,
-        message: 'Verification code sent to your email.',
+        message: 'Verification code sent to your Gmail address.',
       });
-    } catch (mailErr: any) {
+    } catch (deliveryErr: any) {
       await rollbackOtp(email);
-      console.error('Email delivery error:', mailErr?.message || mailErr);
+      console.error('Google Apps Script delivery error:', deliveryErr?.message || deliveryErr);
       return res.status(503).json({
         success: false,
         error:
-          mailErr?.message ||
-          'Failed to send verification email. Please verify SMTP configuration.',
+          deliveryErr?.message ||
+          'Failed to send verification email via Google Apps Script. Please verify APPS_SCRIPT_WEB_APP_URL.',
       });
     }
   } catch (err: any) {
+    console.error('send-otp error:', err?.message || err);
     return res.status(500).json({ success: false, error: 'Internal server error.' });
   }
 }

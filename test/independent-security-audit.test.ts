@@ -156,22 +156,20 @@ async function runAudit() {
     assert.ok(rules.includes('allow delete: if false;'));
   });
 
-  console.log('\nAUDIT SECTION 5: VERCEL SERVERLESS CONFIGURATION');
-  console.log('------------------------------------------------');
+  console.log('\nAUDIT SECTION 5: SERVER-SIDE & FIREBASE CLOUD FUNCTIONS ARCHITECTURE');
+  console.log('--------------------------------------------------------------------');
 
-  await auditTest('5.1: vercel.json preserves /api/* routes from SPA rewrite', () => {
-    const vercelConfig = JSON.parse(fs.readFileSync('vercel.json', 'utf8'));
-    assert.ok(Array.isArray(vercelConfig.rewrites));
-    const rewrite = vercelConfig.rewrites[0];
-    assert.equal(rewrite.source, '/((?!api/).*)');
-    assert.equal(rewrite.destination, '/index.html');
+  await auditTest('5.1: server.ts mounts /api/auth routes for standalone server execution', () => {
+    const serverCode = fs.readFileSync('server.ts', 'utf8');
+    assert.ok(serverCode.includes('/api/auth/send-otp'));
+    assert.ok(serverCode.includes('/api/auth/register'));
+    assert.ok(fs.existsSync('functions/src/index.ts'), 'Firebase Cloud Functions must exist');
   });
 
-  await auditTest('5.2: All three auth API endpoints exist and export default Vercel handlers', () => {
+  await auditTest('5.2: All auth API endpoints exist and export default handlers', () => {
     const endpoints = [
       'api/auth/send-otp.ts',
-      'api/auth/verify-otp.ts',
-      'api/auth/validate-registration.ts',
+      'api/auth/register.ts',
     ];
     for (const ep of endpoints) {
       assert.ok(fs.existsSync(ep), `Endpoint ${ep} must exist`);

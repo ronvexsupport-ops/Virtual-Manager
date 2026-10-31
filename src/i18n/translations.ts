@@ -51,6 +51,9 @@ export const translations = {
     emailVerifiedBadge: 'যাচাইকৃত ইমেইল',
     changeEmailBtn: 'ইমেইল পরিবর্তন করুন',
     passwordMismatch: 'পাসওয়ার্ড দুটি মিলছে না।',
+    verifyAndRegisterBtn: 'যাচাই ও অ্যাকাউন্ট তৈরি করুন',
+    otpStepNotice: 'আপনার জিমেইলে ৬-সংখ্যার ভেরিফিকেশন কোড পাঠানো হয়েছে:',
+    editDetailsBtn: 'তথ্য পরিবর্তন করুন',
     
     // Dashboard
     dashboardTitle: 'হিসাব সারসংক্ষেপ',
@@ -235,6 +238,9 @@ export const translations = {
     emailVerifiedBadge: 'Email Verified',
     changeEmailBtn: 'Change Email',
     passwordMismatch: 'Passwords do not match.',
+    verifyAndRegisterBtn: 'Verify & Create Account',
+    otpStepNotice: 'A 6-digit verification code has been sent to your Gmail:',
+    editDetailsBtn: 'Edit Information',
     
     // Dashboard
     dashboardTitle: 'Accounting Summary',

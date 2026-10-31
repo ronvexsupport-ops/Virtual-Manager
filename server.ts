@@ -1,8 +1,10 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { requestOtp, verifyOtp, validateVerificationToken, rollbackOtp } from './src/services/otpService.ts';
-import { sendOtpEmail } from './src/services/emailService.ts';
+import { requestOtp, rollbackOtp } from './src/services/otpService.ts';
+import { sendOtpViaAppsScript } from './src/services/appsScriptEmailService.ts';
+import registerHandler from './api/auth/register.ts';
+import sendOtpHandler from './api/auth/send-otp.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,92 +14,14 @@ const PORT = parseInt(process.env.PORT || '3000', 10);
 
 app.use(express.json());
 
-// API: Send OTP
+// API: Send OTP (via Google Apps Script)
 app.post('/api/auth/send-otp', async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email || typeof email !== 'string') {
-      return res.status(400).json({ success: false, error: 'Email address is required.' });
-    }
-
-    const otpResult = await requestOtp(email);
-    if (!otpResult.success || !otpResult.otp) {
-      return res.status(429).json({
-        success: false,
-        error: otpResult.error || 'Failed to request OTP.',
-        cooldownRemaining: otpResult.cooldownRemaining,
-      });
-    }
-
-    // Deliver OTP via configured email service
-    try {
-      await sendOtpEmail(email, otpResult.otp);
-      return res.status(200).json({
-        success: true,
-        message: 'Verification code sent to your email.',
-      });
-    } catch (mailErr: any) {
-      // Rollback OTP immediately so no phantom or unusable OTP is left active
-      await rollbackOtp(email);
-      console.error('Email delivery error:', mailErr?.message || mailErr);
-      return res.status(503).json({
-        success: false,
-        error:
-          mailErr?.message ||
-          'Failed to send verification email. Please verify SMTP configuration.',
-      });
-    }
-  } catch (err: any) {
-    console.error('send-otp error:', err);
-    return res.status(500).json({ success: false, error: 'Internal server error.' });
-  }
+  return sendOtpHandler(req, res);
 });
 
-// API: Verify OTP
-app.post('/api/auth/verify-otp', async (req, res) => {
-  try {
-    const { email, otp } = req.body;
-    if (!email || !otp) {
-      return res.status(400).json({ success: false, error: 'Email and 6-digit OTP are required.' });
-    }
-
-    const result = await verifyOtp(email, otp);
-    if (!result.success) {
-      return res.status(400).json({
-        success: false,
-        error: result.error || 'Invalid verification code.',
-        remainingAttempts: result.remainingAttempts,
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      verificationToken: result.verificationToken,
-      message: 'Email verified successfully.',
-    });
-  } catch (err: any) {
-    console.error('verify-otp error:', err);
-    return res.status(500).json({ success: false, error: 'Internal server error.' });
-  }
-});
-
-// API: Validate Registration Token
-app.post('/api/auth/validate-registration', async (req, res) => {
-  try {
-    const { email, verificationToken } = req.body;
-    if (!email || !verificationToken) {
-      return res.status(400).json({ valid: false, error: 'Email and verification token are required.' });
-    }
-
-    const validation = validateVerificationToken(email, verificationToken, true);
-    if (!validation.valid) {
-      return res.status(403).json({ valid: false, error: validation.error });
-    }
-
-    return res.status(200).json({ valid: true });
-  } catch (err: any) {
-    return res.status(500).json({ valid: false, error: 'Internal server error.' });
-  }
+// API: Register (Atomic OTP verification & Firebase Admin account creation)
+app.post('/api/auth/register', async (req, res) => {
+  return registerHandler(req, res);
 });
 
 async function startServer() {
